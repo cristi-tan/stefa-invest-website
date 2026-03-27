@@ -50,21 +50,16 @@ function normalizeBody(body: unknown): ContactPayload {
   return {};
 }
 
-export default async function handler(req: any, res: any) {
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
+export async function POST(request: Request) {
   const missingEnvVars = getMissingEnvVars();
   if (missingEnvVars.length > 0) {
-    return res.status(500).json({
+    return Response.json({
       error: 'Server email configuration is incomplete',
       missing: missingEnvVars,
-    });
+    }, { status: 500 });
   }
 
-  const body = normalizeBody(req.body);
+  const body = normalizeBody(await request.text());
   const name = body.name?.trim() ?? '';
   const email = body.email?.trim() ?? '';
   const company = body.company?.trim() ?? '';
@@ -73,7 +68,7 @@ export default async function handler(req: any, res: any) {
   const language = body.language?.trim() ?? 'ro';
 
   if (!name || !email || !company || !message) {
-    return res.status(400).json({ error: 'Missing required fields' });
+    return Response.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
   const transporter = nodemailer.createTransport({
@@ -117,5 +112,12 @@ export default async function handler(req: any, res: any) {
     `,
   });
 
-  return res.status(200).json({ ok: true });
+  return Response.json({ ok: true });
+}
+
+export function GET() {
+  return Response.json({ error: 'Method not allowed' }, {
+    status: 405,
+    headers: { Allow: 'POST' },
+  });
 }
