@@ -434,8 +434,7 @@ function Partners() {
 }
 
 function Contact() {
-  const { t, language } = useLanguage();
-  const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const { t } = useLanguage();
 
   return (
     <section id="contact" className="py-20 bg-white">
@@ -502,10 +501,9 @@ function Contact() {
 
           <form
             className="flex flex-col gap-5"
-            onSubmit={async (e) => {
+            onSubmit={(e) => {
               e.preventDefault();
-              const form = e.currentTarget;
-              const formData = new FormData(form);
+              const formData = new FormData(e.currentTarget);
               const name = String(formData.get('name') ?? '');
               const email = String(formData.get('email') ?? '');
               const company = String(formData.get('company') ?? '');
@@ -513,38 +511,9 @@ function Contact() {
               const message = String(formData.get('message') ?? '');
               const subject = `${t.contact.form.subjectPrefix} ${name} (${company})`;
               const body = `${t.contact.form.bodyName}: ${name}\n${t.contact.form.bodyEmail}: ${email}\n${t.contact.form.bodyCompany}: ${company}\n${t.contact.form.bodyService}: ${service}\n\n${t.contact.form.bodyMessage}:\n${message}`;
-
-              setStatus('submitting');
-
-              try {
-                const response = await fetch('/api/contact', {
-                  method: 'POST',
-                  headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    name,
-                    email,
-                    company,
-                    service,
-                    message,
-                    language,
-                  }),
-                });
-
-                if (!response.ok) {
-                  throw new Error('Form submission failed');
-                }
-
-                setStatus('success');
-                form.reset();
-              } catch {
-                setStatus('error');
-                window.location.href = `mailto:office@stefainvest.ro?subject=${encodeURIComponent(
-                  subject,
-                )}&body=${encodeURIComponent(body)}`;
-              }
+              window.location.href = `mailto:office@stefainvest.ro?subject=${encodeURIComponent(
+                subject,
+              )}&body=${encodeURIComponent(body)}`;
             }}
           >
             <div>
@@ -592,21 +561,10 @@ function Contact() {
             </div>
             <button
               type="submit"
-              disabled={status === 'submitting'}
-              className="w-full py-4 bg-red-600 text-white font-heading font-bold uppercase rounded hover:bg-red-700 transition-colors disabled:cursor-not-allowed disabled:bg-red-400"
+              className="w-full py-4 bg-red-600 text-white font-heading font-bold uppercase rounded hover:bg-red-700 transition-colors"
             >
-              {status === 'submitting' ? t.contact.form.submitting : t.contact.form.submit}
+              {t.contact.form.submit}
             </button>
-            {status === 'success' && (
-              <p className="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                {t.contact.form.success}
-              </p>
-            )}
-            {status === 'error' && (
-              <p className="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-                {t.contact.form.error}
-              </p>
-            )}
           </form>
         </div>
       </div>
